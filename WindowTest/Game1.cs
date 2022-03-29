@@ -66,10 +66,11 @@ namespace WindowTest
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
+            //Draw testing thing
             _spriteBatch.Begin();
             _spriteBatch.Draw(texture, new Rectangle(pos - camera, new Point(texture.Width, texture.Height)), Color.White);
             _spriteBatch.End();
-            // TODO: Add your drawing code here
+            
 
             base.Draw(gameTime);
         }
