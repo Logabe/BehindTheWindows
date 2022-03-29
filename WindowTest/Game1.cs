@@ -1,6 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Media;
+using System;
 
 namespace WindowTest
 {
@@ -9,23 +11,31 @@ namespace WindowTest
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
+        Point oldSize;
+        Point oldCamera;
         Point camera;
         Point pos = Point.Zero;
 
+        
         Texture2D texture;
-
+        
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
+
+            Window.AllowUserResizing = true;
+            Window.AllowAltF4 = false;
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
+            Window.ClientSizeChanged += OnResize;
         }
 
         protected override void Initialize()
         {
-            // TODO: Add your initialization logic here
-            camera.X = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / 2 - 400;
-            camera.Y = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height / 2 - 240;
+            //Centers the camera
+            camera.X = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / 2 - GraphicsDevice.Viewport.Width;
+            camera.Y = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height / 2 - GraphicsDevice.Viewport.Height;
+
             base.Initialize();
         }
 
@@ -33,21 +43,23 @@ namespace WindowTest
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             texture = Content.Load<Texture2D>("Icon");
+
             // TODO: use this.Content to load your game content here
         }
 
         protected override void Update(GameTime gameTime)
         {
+            //Exit code
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
-            if (Keyboard.GetState().IsKeyDown(Keys.W))
-                camera.Y--;
-            if (Keyboard.GetState().IsKeyDown(Keys.S))
-                camera.Y++;
-            if (Keyboard.GetState().IsKeyDown(Keys.A))
-                camera.X--;
-            if (Keyboard.GetState().IsKeyDown(Keys.D))
-                camera.X++;
+
+            //Check that the window is in the same spot
+            if(camera != oldCamera)
+            {
+                OnMoved();
+            }
+
+
             //Texture move
             if (Keyboard.GetState().IsKeyDown(Keys.Up))
                 pos.Y--;
@@ -57,9 +69,11 @@ namespace WindowTest
                 pos.X--;
             if (Keyboard.GetState().IsKeyDown(Keys.Right))
                 pos.X++;
-            Window.Position = camera;
-            // TODO: Add your update logic here
 
+            //More logic
+            camera = Window.Position;
+            oldCamera = camera;
+            oldSize = Window.ClientBounds.Size;
             base.Update(gameTime);
         }
 
@@ -71,8 +85,28 @@ namespace WindowTest
             _spriteBatch.Draw(texture, new Rectangle(pos - camera, new Point(texture.Width, texture.Height)), Color.White);
             _spriteBatch.End();
             
-
             base.Draw(gameTime);
+        }
+
+        //Callbacks
+        public void OnResize(Object sender, EventArgs e)
+        {
+            Point Size = Window.ClientBounds.Size;
+            Point Pos = Window.ClientBounds.Location;
+            if (Pos.X < camera.X)
+            {
+                camera.X -= Size.X - oldSize.X;
+            }
+            if (Pos.Y < camera.Y)
+            {
+                camera.Y -= Size.Y - oldSize.Y;
+            }
+
+        }
+
+        public void OnMoved()
+        {
+            camera = Window.Position;
         }
     }
 }
